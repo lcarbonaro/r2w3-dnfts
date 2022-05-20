@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-// DynamicNFTMulti deployed to: 0xC58070e6C461Bf5A979ca4a72D15B111669dCA35
+// DynamicNFTMulti deployed to: 0xF5bA2a53Ea0b92C7B1d10a65eb0677cAb1BdB758
 
 pragma solidity ^0.8.0;
 
@@ -142,30 +142,27 @@ contract DynamicNFTMulti is ERC721URIStorage {
         uint256 currentLevel = _multi.level;
         _multi.level = currentLevel + 1;
 
-        uint256 r = random( _multi.level );
-
         uint256 currentEmpathy = _multi.empathy;
-        _multi.empathy = currentEmpathy + r;
+        _multi.empathy = currentEmpathy + getRandomNumber(currentEmpathy);
 
         uint256 currentCommunication = _multi.communication;
-        _multi.communication = currentCommunication + r;
+        _multi.communication = currentCommunication + getRandomNumber(currentCommunication);
 
         uint256 currentDiplomacy = _multi.diplomacy;
-        _multi.diplomacy = currentDiplomacy + r;
+        _multi.diplomacy = currentDiplomacy + getRandomNumber(currentDiplomacy);
 
         _setTokenURI(tokenId, getTokenURI(tokenId));
     } // function train
 
-    function random(uint256 number) public view returns (uint256) {
-        return
-            uint256(
-                keccak256(
-                    abi.encodePacked(
-                        block.timestamp,
-                        block.difficulty,
-                        msg.sender
-                    )
-                )
-            ) % number;
+
+    function getRandomNumber(uint256 max) public view returns (uint256) {
+        bytes memory seed = abi.encodePacked(block.timestamp,block.difficulty,msg.sender);
+        uint256 rand = random(seed,max);
+        return rand;
     }
+
+    function random(bytes memory _seed, uint256 max) private pure returns (uint256) {
+        return uint256(keccak256(_seed)) % max;        
+    }
+    
 }
