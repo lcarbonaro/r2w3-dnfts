@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-// DynamicNFTMulti deployed to: 0x9B4a4A7F38261E008B9B71C10fd87d5b2cB0Cbd9
+// DynamicNFTMulti deployed to: 0xC58070e6C461Bf5A979ca4a72D15B111669dCA35
 
 pragma solidity ^0.8.0;
 
@@ -27,7 +27,11 @@ contract DynamicNFTMulti is ERC721URIStorage {
     constructor() ERC721("DynamicNFTMulti", "DNFTM") {}
 
     // generate a dynamic nft e.g. representing a character in a game
-    function generateCharacter(uint256 tokenId) public view returns (string memory) {
+    function generateCharacter(uint256 tokenId)
+        public
+        view
+        returns (string memory)
+    {
         bytes memory svg = abi.encodePacked(
             '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">',
             "<defs>",
@@ -46,17 +50,17 @@ contract DynamicNFTMulti is ERC721URIStorage {
             getLevel(tokenId),
             "</text>",
             '<text x="50%" y="60%" class="base" dominant-baseline="middle" text-anchor="middle" fill="url(#grad)">',
-            'Empathy: ',
+            "Empathy: ",
             getEmpathy(tokenId),
-            '</text>',
+            "</text>",
             '<text x="50%" y="65%" class="base" dominant-baseline="middle" text-anchor="middle" fill="url(#grad)">',
-            'Communication: ',
+            "Communication: ",
             getCommunication(tokenId),
-            '</text>',
+            "</text>",
             '<text x="50%" y="70%" class="base" dominant-baseline="middle" text-anchor="middle" fill="url(#grad)">',
-            'Diplomacy: ',
+            "Diplomacy: ",
             getDiplomacy(tokenId),
-            '</text>',
+            "</text>",
             "</svg>"
         );
 
@@ -73,14 +77,21 @@ contract DynamicNFTMulti is ERC721URIStorage {
         Multi memory _multi = tokenIdToMulti[tokenId];
         return _multi.level.toString();
     }
+
     function getEmpathy(uint256 tokenId) public view returns (string memory) {
         Multi memory _multi = tokenIdToMulti[tokenId];
         return _multi.empathy.toString();
     }
-    function getCommunication(uint256 tokenId) public view returns (string memory) {
+
+    function getCommunication(uint256 tokenId)
+        public
+        view
+        returns (string memory)
+    {
         Multi memory _multi = tokenIdToMulti[tokenId];
         return _multi.communication.toString();
     }
+
     function getDiplomacy(uint256 tokenId) public view returns (string memory) {
         Multi memory _multi = tokenIdToMulti[tokenId];
         return _multi.diplomacy.toString();
@@ -107,37 +118,54 @@ contract DynamicNFTMulti is ERC721URIStorage {
             );
     } // function getTokenURI
 
-
     function mint() public {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
         Multi storage _multi = tokenIdToMulti[newItemId];
-        _multi.level = 0;
-        _multi.empathy = 0;
-        _multi.communication = 0;
-        _multi.diplomacy = 0;        
+        _multi.level = 1;
+        _multi.empathy = 3;
+        _multi.communication = 5;
+        _multi.diplomacy = 2;
         _setTokenURI(newItemId, getTokenURI(newItemId));
     } // function mint
 
     function train(uint256 tokenId) public {
         require(_exists(tokenId), "You must use an existing token!");
-        require(ownerOf(tokenId) == msg.sender, "You can only train a token you own!");
+        require(
+            ownerOf(tokenId) == msg.sender,
+            "You can only train a token you own!"
+        );
 
         Multi storage _multi = tokenIdToMulti[tokenId];
 
         uint256 currentLevel = _multi.level;
         _multi.level = currentLevel + 1;
 
+        uint256 r = random( _multi.level );
+
         uint256 currentEmpathy = _multi.empathy;
-        _multi.empathy = ( currentEmpathy * 2 ) - 1;
+        _multi.empathy = currentEmpathy + r;
 
         uint256 currentCommunication = _multi.communication;
-        _multi.communication = currentCommunication + 2;
+        _multi.communication = currentCommunication + r;
 
         uint256 currentDiplomacy = _multi.diplomacy;
-        _multi.diplomacy = currentDiplomacy + 1;
+        _multi.diplomacy = currentDiplomacy + r;
 
         _setTokenURI(tokenId, getTokenURI(tokenId));
     } // function train
+
+    function random(uint256 number) public view returns (uint256) {
+        return
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        block.timestamp,
+                        block.difficulty,
+                        msg.sender
+                    )
+                )
+            ) % number;
+    }
 }
